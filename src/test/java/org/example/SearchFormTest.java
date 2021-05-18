@@ -27,8 +27,7 @@ public class SearchFormTest {
         mainPage.inputDestiny("Москва");
         mainPage.skipPetulantCookies();
         mainPage.setDates(1, 7);//Amount of days before moving in, amount of days before moving out
-        //Only 1 kid supported for now
-        mainPage.setAccommodation(8, 1, 2, 6);//Adults, Kids, Rooms, Age
+        mainPage.fillAccommodation(8, 2, 2, "3,7");//Adults, Kids, Rooms, Age
         mainPage.clickCheckButton();
 
         //Assert.assertEquals(resultPage.getResultsAmount(), 25);

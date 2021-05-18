@@ -1,5 +1,7 @@
 package org.example;
 
+import io.cucumber.java.After;
+import io.cucumber.java.Before;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
@@ -8,28 +10,33 @@ import org.junit.Assert;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 
+import java.util.Map;
+
 public class SearchSteps {
     public static MainPage mainPage;
     public static ResultPage resultPage;
 
-    @Given("user is on main page")
-    public void openMainPage() {
+    @Before
+    public void startDriver(){
         System.setProperty("webdriver.chrome.driver", System.getProperty("user.dir")+"/src/main/resources/chromedriver.exe");
         WebDriver driver = new ChromeDriver();
         mainPage = new MainPage(driver);
         resultPage = new ResultPage(driver);
         driver.manage().window().maximize();
-        driver.get("https://www.booking.com/");
     }
 
-    @When("^user goes to (.*), moves in (.*) days, moves out in (.*) days, there will be (.*) adults and (.*) kids, user needs (.*) rooms, the kids ages are (.*)$")
-    public void enterData(String destination, int moveIn, int moveOut, int adults, int kids, int rooms, int kid0Age) {
+    @Given("user is on main page")
+    public void openMainPage() {
+        resultPage.driver.get("https://www.booking.com/");
+    }
+
+    @When("user fills the search form:")
+    public void enterData(Map<String, String> data) {
         mainPage.waitSomeTime(1500);//Time in ms to let the page work properly
-        mainPage.inputDestiny(destination);
+        mainPage.inputDestiny(data.get("destination"));
         mainPage.skipPetulantCookies();
-        mainPage.setDates(moveIn, moveOut);
-        //Only 1 kid supported for now
-        mainPage.setAccommodation(adults, kids, rooms, kid0Age);//Adults, Kids, Rooms, Age
+        mainPage.setDates(Integer.parseInt(data.get("moveIn")), Integer.parseInt(data.get("moveOut")));
+        mainPage.fillAccommodation(Integer.parseInt(data.get("Adults")), Integer.parseInt(data.get("Kids")), Integer.parseInt(data.get("Rooms")), data.get("KidsAge"));//Adults, Kids, Rooms, Age
     }
 
     @And("clicks on check button")
@@ -37,9 +44,13 @@ public class SearchSteps {
         mainPage.clickCheckButton();
     }
 
-    @Then("user is navigated to the result page")
+    @Then("25 results shown on result page")
     public void checkTheResult() {
         Assert.assertEquals(resultPage.getShownResultsAmount(), 25);
+    }
+
+    @After
+    public void close() {
         resultPage.closeDriver();
     }
 }
