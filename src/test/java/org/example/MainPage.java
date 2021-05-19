@@ -1,5 +1,7 @@
 package org.example;
 
+import org.example.elements.CalendarField;
+import org.example.elements.NumberField;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -9,30 +11,40 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 
 
 public class MainPage {
     public WebDriver driver;
-    public static setAccommodation SetAccommodation;
+
+    private NumberField adults;
+    private NumberField kids;
+    private NumberField rooms;
+    private CalendarField dateField;
+
     public MainPage(WebDriver driver)  {
         PageFactory.initElements(driver, this);
         this.driver = driver;
+        adults = new NumberField(By.xpath("//div[./input[@id='group_adults']]"), driver);
+        kids = new NumberField(By.xpath("//div[./input[@id='group_children']]"), driver);
+        rooms = new NumberField(By.xpath("//div[./input[@id='no_rooms']]"), driver);
+
+        dateField = new CalendarField(By.xpath("//div[@class='xp__dates xp__group']"), driver);
     }
 
     //####################
     @FindBy(xpath = "//button[@id='onetrust-accept-btn-handler']")
     private WebElement petulantCookies;
     //####################
+    @FindBy(xpath = "//div[@class='xp__dates xp__group']")
+    private WebElement calendarField;
+    //####################
     @FindBy(xpath= "//input[@id='ss']")
     private WebElement destinyField;
     //####################
-    @FindBy(xpath = "//div[@class='xp__dates xp__group']")
-    private WebElement dateField;
+    @FindBy(xpath = "//div[@data-component='search/group/group-with-modal']")
+    private WebElement accommodationField;
     //####################
-
     @FindBy(xpath = "//div[contains(@class, 'xp__button')]")
     private WebElement checkButton;
 
@@ -51,20 +63,28 @@ public class MainPage {
         petulantCookies.click();
     }
 
-    public void setDates(int a, int b) {
-        dateField.click();
-        Calendar cal = Calendar.getInstance();
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+    public void setDates(int in, int out) {
+        calendarField.click();
 
-        cal.add(Calendar.DATE, a);
-        driver.findElement(By.xpath("//td[@data-date=\'" + sdf.format(cal.getTime()) + "\']")).click();
-
-        cal.add(Calendar.DATE, b-a);
-        driver.findElement(By.xpath("//td[@data-date=\'" + sdf.format(cal.getTime()) + "\']")).click();
+        this.dateField.newDate(in);
+        this.dateField.newDate(out);
     }
 
     public void fillAccommodation(int adults, int kids, int rooms, String kidsAge) {
-        SetAccommodation.fillAccommodation(adults, kids, rooms, kidsAge);
+        accommodationField.click();
+
+        this.adults.newValue(adults);
+        this.kids.newValue(kids);
+        this.rooms.newValue(rooms);
+
+        String[] age = kidsAge.split(",");
+
+        for (int i = 0; i < kids; i++) {
+            Select kidSelect = new Select(driver.findElement(By.xpath("//select[@data-group-child-age='" + i + "']")));
+            if (Integer.parseInt(age[i]) != Integer.parseInt(driver.findElement(By.cssSelector("[data-group-child-age='" + i + "'] option[selected]")).getText().replaceAll("[^0-9]", ""))){
+                kidSelect.selectByValue(String.valueOf(age[i]));
+            }
+        }
     }
 
     public void clickCheckButton() {
